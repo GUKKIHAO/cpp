@@ -221,7 +221,87 @@ class vector : protected _Vector_base<_Tp, _Alloc>
 		#endif /* __STL_MEMBER_TEMPLATES */
 
   		~vector() { destroy(_M_start, _M_finish); }//析构函数
+		vector<_Tp, _Alloc>& operator=(const vector<_Tp, _Alloc>& __x);//赋值函数，未补充
+		void reserve(size_type __n) {//改变可用空间内存大小
+    	　if (capacity() < __n) {
+      		const size_type __old_size = size();
+	  		//重新分配大小为n的内存空间，并把原来数据复制到新分配空间
+      		iterator __tmp = _M_allocate_and_copy(__n, _M_start, _M_finish);
+      		destroy(_M_start, _M_finish);//释放容器元素对象
+      		_M_deallocate(_M_start, _M_end_of_storage - _M_start);//回收原来的内存空间
+	  		//调整迭代器所指的地址,因为原来迭代器所指的地址已经失效
+      		_M_start = __tmp;
+      		_M_finish = __tmp + __old_size;
+      		_M_end_of_storage = _M_start + __n;
+    		}
+  		}
+/*assign有两种类型分别为
+void assign(size_type __n, const _Tp& __val) 
+template <class _InputIterator>
+		　void assign(_InputIterator __first, _InputIterator __last)
+作用是
+*/			
+//把容器内容替换为n个初始值为value，原来容器内的值也将不复存在
+		void assign(size_type __n, const _Tp& __val) { _M_fill_assign(__n, __val); }
+		void _M_fill_assign(size_type __n, const _Tp& __val);
+		
+		#ifdef __STL_MEMBER_TEMPLATES
+		　template <class _InputIterator>
+		　void assign(_InputIterator __first, _InputIterator __last) {//把另外一个容器内的部分元素替换到该容器中
+    		typedef typename _Is_integer<_InputIterator>::_Integral _Integral;
+    		_M_assign_dispatch(__first, __last, _Integral());
+  		　}
+//_M_fill_assign函数进行重载，分别对应不同的类型
+		  template <class _Integer>
+ 		　void _M_assign_dispatch(_Integer __n, _Integer __val, __true_type)
+    		{ _M_fill_assign((size_type) __n, (_Tp) __val); }
 
+		  template <class _InputIter>
+  		　void _M_assign_dispatch(_InputIter __first, _InputIter __last, __false_type)
+    		{ _M_assign_aux(__first, __last, __ITERATOR_CATEGORY(__first)); }
+//_M_assign_aux函数重载
+		　template <class _InputIter>
+		　void _M_assign_dispatch(_InputIter __first, _InputIter __last, __false_type)
+			{ _M_assign_aux(__first, __last, __ITERATOR_CATEGORY(__first)); }
+
+		　template <class _InputIterator>
+		  void _M_assign_aux(_InputIterator __first, _InputIterator __last,
+					         input_iterator_tag);
+
+		　template <class _ForwardIterator>
+		  void _M_assign_aux(_ForwardIterator __first, _ForwardIterator __last,
+						       forward_iterator_tag);
+		　#endif /* __STL_MEMBER_TEMPLATES */
+		　reference front() { return *begin(); }//返回第一个元素
+		  const_reference front() const { return *begin(); }
+		  reference back() { return *(end() - 1); }//返回容器最后一个元素
+		  const_reference back() const { return *(end() - 1); }
+
+		　
+	  	　void push_back(const _Tp& __x) {//在最尾端插入元素
+			if (_M_finish != _M_end_of_storage) {//若有可用的内存空间
+		 		 construct(_M_finish, __x);//构造对象
+		  		++_M_finish;
+			}
+			else//若没有可用的内存空间,调用以下函数，把x插入到指定位置
+			  _M_insert_aux(end(), __x);
+		  }
+		　void push_back() {//没有元素，用于啥啊
+			if (_M_finish != _M_end_of_storage) {
+			  construct(_M_finish);				 //？？？ 
+			　++_M_finish;
+			}
+			else
+			  _M_insert_aux(end());
+  　　　　　}
+  			void swap(vector<_Tp, _Alloc>& __x) {
+				 /*交换容器的内容
+				 *这里使用的方法是交换迭代器所指的地址
+			　　  */
+			　__STD::swap(_M_start, __x._M_start);
+			　__STD::swap(_M_finish, __x._M_finish);
+			　__STD::swap(_M_end_of_storage, __x._M_end_of_storage);
+		  }
 };
 
 
