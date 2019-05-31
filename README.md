@@ -1,8 +1,8 @@
-[算法](F:\cpp\alg)
+[算法](cpp\alg)
 
-[STL](F:\cpp\cpp_stl)
+[STL](cpp\cpp_stl)
 
-[leetcode](F:\cpp\leetcode)
+[leetcode](cpp\leetcode)
 
-[笔记](F:\cpp\leetcode)
+[笔记](cpp\leetcode)
 
